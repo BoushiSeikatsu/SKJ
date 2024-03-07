@@ -1,84 +1,48 @@
-from tasks import fizzbuzz, fibonacci, bonus_utf8, count_words, dot_product, redact, bonus_fizzbuzz
+from tasks import count_successive, find_positions, invert_dictionary, is_palindrome, \
+    lex_compare
 
 
-def test_fizzbuzz():
-    assert fizzbuzz(3) == 'Fizz'
-    assert fizzbuzz(5) == 'Buzz'
-    assert fizzbuzz(15) == 'FizzBuzz'
-    assert fizzbuzz(25) == 'Buzz'
-    assert fizzbuzz(8) == 8
-    assert fizzbuzz(45) == 'FizzBuzz'
-    assert fizzbuzz(1) == 1
-    assert fizzbuzz(0) == 'FizzBuzz'
+def test_lex_compare():
+    assert lex_compare('a', 'b') == 'a'
+    assert lex_compare('ahoj', 'buvol') == 'ahoj'
+    assert lex_compare('ahoj', 'ahojky') == 'ahoj'
+    assert lex_compare('dum', 'automobil') == 'automobil'
+    assert lex_compare('', '') == ''
+    assert lex_compare('abc', 'abd') == 'abc'
+    assert lex_compare('dbe', 'dca') == 'dbe'
 
 
-def test_fibonacci():
-    assert fibonacci(0) == 0
-    assert fibonacci(1) == 1
-    assert fibonacci(2) == 1
-    assert fibonacci(3) == 2
-    assert fibonacci(4) == 3
-    assert fibonacci(5) == 5
-    assert fibonacci(6) == 8
-    assert fibonacci(7) == 13
-    assert fibonacci(10) == 55
-    assert fibonacci(20) == 6765
-    assert fibonacci(30) == 832040
+def test_is_palindrome():
+    assert is_palindrome('')
+    assert is_palindrome('a')
+    assert is_palindrome('aa')
+    assert is_palindrome('aba')
+    assert is_palindrome('bbbb')
+    assert not is_palindrome('ab')
+    assert not is_palindrome('abc')
+    assert not is_palindrome('abca')
 
 
-def test_dot_product():
-    assert dot_product([1, 2, 3], [0, 3, 4]) == 18
-    assert dot_product((-1,), (5,)) == -5
-    assert "{:.2f}".format(dot_product((-5.6, 0, 10), (12, 8, 5))) == "-17.20"
+def test_count_successive():
+    assert count_successive("") == []
+    assert count_successive("aaabbcccc") == [("a", 3), ("b", 2), ("c", 4)]
+    assert count_successive("aabaaa") == [("a", 2), ("b", 1), ("a", 3)]
+    assert count_successive("aaaa") == [("a", 4)]
 
 
-def test_redact():
-    assert redact("Hello world!", "lo") == "Hexxx wxrxd!"
-    assert redact("Secret message", "mse") == "Sxcrxt xxxxagx"
-    assert redact("No spaces allowed", " ") == "Noxspacesxallowed"
-    assert redact("S", "s") == "S"
-    assert redact("xxsx", "s") == "xxxx"
-    assert redact("", []) == ""
-
-
-def test_count_words():
-    assert count_words('hello is this the crusty crab no this is patrick') == \
-    {
-        'hello': 1,
-        'this': 2,
-        'is': 2,
-        'the': 1,
-        'crusty': 1,
-        'crab': 1,
-        'no': 1,
-        'patrick': 1
+def test_find_positions():
+    assert find_positions([]) == {}
+    assert find_positions([0, 0, 0]) == {0: [0, 1, 2]}
+    assert find_positions(["hello", 1, 1, 2, "hello", 2]) == {
+        2: [3, 5],
+        "hello": [0, 4],
+        1: [1, 2]
     }
-    assert count_words('what happens in kernel mode stays in kernel mode') == \
-    {
-        'what': 1,
-        'happens': 1,
-        'in': 2,
-        'kernel': 2,
-        'mode': 2,
-        'stays': 1
-    }
-    assert count_words('') == {}
 
 
-def test_bonus_fizzbuzz():
-    assert bonus_fizzbuzz(3) == 'Fizz'
-    assert bonus_fizzbuzz(5) == 'Buzz'
-    assert bonus_fizzbuzz(6) == 'Fizz'
-    assert bonus_fizzbuzz(15) == 'FizzBuzz'
-    assert bonus_fizzbuzz(25) == 'Buzz'
-    assert bonus_fizzbuzz(8) == 8
-    assert bonus_fizzbuzz(45) == 'FizzBuzz'
-    assert bonus_fizzbuzz(1) == 1
-    assert bonus_fizzbuzz(0) == 'FizzBuzz'
-
-
-def test_bonus_utf8():
-    assert bytes(bonus_utf8(ord('0'))).decode('utf-8') == '0'
-    assert bytes(bonus_utf8(ord('č'))).decode('utf-8') == 'č'
-    assert bytes(bonus_utf8(ord('⤴'))).decode('utf-8') == '⤴'
-    assert bytes(bonus_utf8(ord('😁'))).decode('utf-8') == '😁'
+def test_invert_dictionary():
+    assert invert_dictionary({}) == {}
+    assert invert_dictionary({1: 2, 3: 4}) == {2: 1, 4: 3}
+    assert invert_dictionary({1: 2, 3: 2}) is None
+    assert invert_dictionary({1: 2, 3: "2"}) == {2: 1, "2": 3}
+    assert invert_dictionary({1: 2, 3: 4, "a": "b", 4: 3}) == {2: 1, 4: 3, 3: 4, "b": "a"}

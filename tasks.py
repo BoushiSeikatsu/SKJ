@@ -1,171 +1,101 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb 27 06:32:13 2024
-
-@author: Michal
-"""
-
-def fizzbuzz(num):
+def is_palindrome(data):
     """
-    Return 'Fizz' if `num` is divisible by 3, 'Buzz' if `num` is divisible by 5, 'FizzBuzz' if `num` is divisible both by 3 and 5.
-    If `num` isn't divisible neither by 3 nor by 5, return `num`.
-    Example:
-        fizzbuzz(3) # Fizz
-        fizzbuzz(5) # Buzz
-        fizzbuzz(15) # FizzBuzz
-        fizzbuzz(8) # 8
-    """
-    if (num % 3 == 0 and num % 5 == 0):
-        return "FizzBuzz"
-    elif (num % 5 == 0):
-        return "Buzz"
-    elif (num % 3 == 0):
-        return "Fizz"
-    else:
-        return num
-    pass
-
-
-def fibonacci(n):
-    """
-    Return the `n`-th Fibonacci number (counting from 0).
-    Example:
-        fibonacci(0) == 0
-        fibonacci(1) == 1
-        fibonacci(2) == 1
-        fibonacci(3) == 2
-        fibonacci(4) == 3
-    """
-    #n = 1
-    if(n == 1):
-        return 1
-    prelastNumber = 0
-    lastNumber = 1
-    result = 0
-    for number in range(1,n):
-        result = prelastNumber + lastNumber
-        prelastNumber = lastNumber
-        lastNumber = result
-    return result
-    pass
-
-
-def dot_product(a, b):
-    """
-    Calculate the dot product of `a` and `b`.
-    Assume that `a` and `b` have same length.
+    Returns True if `data` is a palindrome and False otherwise.
     Hint:
-        lookup `zip` function
+        slicing is your friend, use it
     Example:
-        dot_product([1, 2, 3], [0, 3, 4]) == 1*0 + 2*3 + 3*4 == 18
+        is_palindrome('aba') == True
+        is_palindrome('abc') == False
     """
-    #a = [1, 2, 3]
-    #b = [0, 3, 4]
-    zipped = zip(a,b)
-    result = 0
-    for left, right in zipped:
-        result += left*right
+    for i in range(0, len(data)):
+        forwardReading = data[i]
+        backwardReading = data[-(i+1)]
+        if(forwardReading != backwardReading):
+            return False
+    return True
+#data = "abba"
+#result = is_palindrome(data)
+def lex_compare(a, b):
+    """
+    Lexicographically compare `a` with `b` and return the smaller string.
+    Implement the comparison yourself, do not use the `<` operator for comparing strings :)
+
+    Example:
+        lex_compare('a', 'b') == 'a'
+        lex_compare('ahoj', 'buvol') == 'ahoj'
+        lex_compare('ahoj', 'ahojky') == 'ahoj'
+        lex_compare('dum', 'automobil') == 'automobil'
+    """
+    #a = 'dum'
+    #b = 'automobil'
+    shorterStringLength = ((len(a),len(b)) [len(b) < len(a)])
+    for i in range(0,shorterStringLength):
+        if(a[i] < b[i]):
+            return a
+        elif(a[i] > b[i]):
+            return b
+    return ((a, b) [len(b) < len(a)])
+
+
+def count_successive(string):
+    """
+    Go through the string and for each character, count how many times it appears in succession.
+    Store the character and the count in a tuple and return a list of such tuples.
+
+    Example:
+          count_successive("aaabbcccc") == [("a", 3), ("b", 2), ("c", 4)]
+          count_successive("aba") == [("a", 1), ("b", 1), ("a", 1)]
+    """
+    if(len(string) == 0):
+        return []
+    result = []
+    lastChar = string[0]
+    result.append((lastChar,0))#First char is gonna increment it
+    for char in string:
+        if(lastChar == char):
+            result[-1] = (lastChar,result[-1][1]+1)
+        else:
+            lastChar = char
+            result.append((lastChar,1))
     return result
-    pass
 
-
-def redact(data, chars):
+def find_positions(items):
     """
-    Return `data` with all characters from `chars` replaced by the character 'x'.
-    Characters are case sensitive.
-    Example:
-        redact("Hello world!", "lo")        # Hexxx wxrxd!
-        redact("Secret message", "mse")     # Sxcrxt xxxxagx
-    """
-    #data = "Hello world!"
-    #chars = "lo"
-    for char in chars:
-        data = data.replace(char,'x')
-    return data
-    pass
-
-
-def count_words(data):
-    """
-    Return a dictionary that maps word -> number of occurences in `data`.
-    Words are separated by spaces (' ').
-    Characters are case sensitive.
-
-    Hint:
-        "hi there".split(" ") -> ["hi", "there"]
+    Go through the input list of items and collect indices of each individual item.
+    Return a dictionary where the key will be an item and its value will be a list of indices
+    where the item was found.
 
     Example:
-        count_words('this car is my favourite what car is this')
-        {
-            'this': 2,
-            'car': 2,
-            'is': 2,
-            'my': 1,
-            'favourite': 1,
-            'what': 1
+        find_positions(["hello", 1, 1, 2, "hello", 2]) == {
+            2: [3, 5],
+            "hello": [0, 4],
+            1: [1, 2]
         }
     """
-    #data = "this car is my favourite what car is this"
-    if(data == ""):
-        return {}
-    splitString = data.split(" ")
-    wordCountDict = dict()
-    for word in splitString:
-        if(word in wordCountDict):
-            wordCountDict[word] += 1
-        else:
-            wordCountDict[word] = 1
-    return wordCountDict
-    pass
-
-
-def bonus_fizzbuzz(num):
-    """
-    Implement the `fizzbuzz` function.
-    `if`, match-case and cycles are not allowed.
-    """
-    #num = 15
-    emptyString = ""
-    fizz = "Fizz"
-    buzz = "Buzz"
-    #Rozhodl jsem se pouzit touple ternalni operator
-    result = ((emptyString, fizz) [num % 3 == 0])
-    result += ((emptyString, buzz) [num % 5 == 0])
-    result = ((result, num) [result == ""])
+    result = dict()
+    for i in range(0, len(items)):
+        if(items[i] not in result.keys()):
+            result.update({items[i]: []})
+        result[items[i]].append(i)
     return result
-    pass
 
 
-def bonus_utf8(cp):
+def invert_dictionary(dictionary):
     """
-    Encode `cp` (a Unicode code point) into 1-4 UTF-8 bytes - you should know this from `Základy číslicových systémů (ZDS)`.
+    Invert the input dictionary. Turn keys into values and vice-versa.
+    If more values would belong to the same key, return None.
+
     Example:
-        bonus_utf8(0x01) == [0x01]
-        bonus_utf8(0x1F601) == [0xF0, 0x9F, 0x98, 0x81]
+        invert_dictionary({1: 2, 3: 4}) == {2: 1, 4: 3}
+        invert_dictionary({1: 2, 3: 2}) is None
     """
-    if cp < 0x80:
-        # Single-byte encoding
-        return bytes([cp])
-    elif cp < 0x800:
-        # Two-byte encoding
-        byte1 = 0xC0 | (cp >> 6)
-        byte2 = 0x80 | (cp & 0x3F)
-        return bytes([byte1, byte2])
-    elif cp < 0x10000:
-        # Three-byte encoding
-        byte1 = 0xE0 | (cp >> 12)
-        byte2 = 0x80 | ((cp >> 6) & 0x3F)
-        byte3 = 0x80 | (cp & 0x3F)
-        return bytes([byte1, byte2, byte3])
-    elif cp < 0x110000:
-        # Four-byte encoding
-        byte1 = 0xF0 | (cp >> 18)
-        byte2 = 0x80 | ((cp >> 12) & 0x3F)
-        byte3 = 0x80 | ((cp >> 6) & 0x3F)
-        byte4 = 0x80 | (cp & 0x3F)
-        return bytes([byte1, byte2, byte3, byte4])
-
-# Example usage
-unicode_code_point = 0x1F601  # Example code point for a smiling face emoji
-utf8_bytes = bonus_utf8(unicode_code_point)
-print("UTF-8 Bytes:", utf8_bytes)
+    
+    result = dict()
+    for key, value in dictionary.items():
+        if(value not in result.keys()):
+            result.update({value: key})
+        else:
+            return None
+    return result
+#dictionary = {1: 2, 3: 2}
+#output = invert_dictionary(dictionary)
