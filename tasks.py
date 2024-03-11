@@ -114,9 +114,6 @@ def parser_char(char: str) -> Parser[str]:
 
     return parse    
 
-parser = parser_char("x")
-print(parser("x"))  # ParseResult(value="x", rest="")
-print(parser("xa"))  # ParseResult(value="x", rest="a")
 """
 def parser(func):
     def inner(*args):
@@ -173,11 +170,7 @@ def parser_seq(parsers: List[Parser]) -> Parser:
                 resultOfFunc.rest = resultOfParse.rest
         return resultOfFunc
     return parse
-parser_a = parser_char("a")
-parser_b = parser_char("b")
-parser = parser_seq([parser_a, parser_b, parser_a])
-print(parser("abax")) #=> ParseResult(value=["a", "b", "a"], rest="x")
-print(parser("ab")) #=> ParseResult(value=None, rest="ab")
+
 def parser_choice(parsers: List[Parser]) -> Parser:
     """
     Return a parser that will return the result of the first parser in `parsers` that matches something
@@ -199,12 +192,8 @@ def parser_choice(parsers: List[Parser]) -> Parser:
             if(returnOfParser.value is not None):
                 return returnOfParser
         return ParseResult(None, inputString)
-parser_a = parser_char("a")
-parser_b = parser_char("b")
-parser = parser_choice([parser_a, parser_b])
-print(parser("ax")) #=> ParseResult(value="a", rest="x")
-print(parser("bx")) #=> ParseResult(value="b", rest="x")
-print(parser("cx")) #=> ParseResult(value=None, rest="cx")
+    return parse
+
 R = TypeVar("R")
 
 
@@ -225,7 +214,14 @@ def parser_map(parser: Parser[R], map_fn: Callable[[R], Optional[T]]) -> Parser[
         parser("ax") => ParseResult(value=None, rest="ax")
         ```
     """
-
+    def parse(inputString: str):
+        resultOfParser = parser(inputString)
+        if(resultOfParser.value is not None):
+            resultOfParser.value = map_fn(resultOfParser.value)
+        if(resultOfParser.value is None):
+            resultOfParser.rest = inputString
+        return resultOfParser
+    return parse 
 
 def parser_matches(filter_fn: Callable[[str], bool]) -> Parser[str]:
     """
@@ -241,10 +237,21 @@ def parser_matches(filter_fn: Callable[[str], bool]) -> Parser[str]:
         parser("") => ParseResult(value=None, rest="")
         ```
     """
-
-
+    def parse(inputString: str):
+        if(len(inputString) == 0):
+            return ParseResult(None, inputString)
+        if(filter_fn(inputString[0])):
+            value, rest = inputString[0], inputString[1::]
+            return ParseResult(value, rest)
+        else:
+            return ParseResult(None, inputString)
+    return parse
 # Use the functions above to implement the functions below.
-
+parser = parser_matches(lambda x: x in ("ab"))
+print(parser("ax")) #=> ParseResult(value="a", rest="x")
+print(parser("bx")) #=> ParseResult(value="b", rest="x")
+print(parser("cx")) #=> ParseResult(value=None, rest="cx")
+print(parser("")) #=> ParseResult(value=None, rest="")
 
 def parser_string(string: str) -> Parser[str]:
     """
