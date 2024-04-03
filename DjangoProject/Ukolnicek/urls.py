@@ -16,7 +16,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from UkolnicekApp import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('', views.index, name='index'),
+    path('login/', views.login, name='login'),
+    path('register/', views.register, name='register'),
+    path('about/', views.about, name='about'),
+    path('faq/', views.faq, name='faq'),
+    path('user/<int:user_id>/', views.user, name='user'),
+    path('friends/<int:user_id>/', views.friends, name='friends'),
+    path('userlist/', views.userlist, name='userlist'),
+    path('project/<int:project_id>/', views.project, name="project"),
+    path('task/<int:task_id>/', views.task, name="task"),
+    path('addTask/', views.addTask, name='addTask'),
+    path('editTask/<int:task_id>/', views.editTask, name='editTask'),
+    path('addProject/', views.addProject, name='addProject'),
+    path('editProject/<int:project_id>/', views.editProject, name='editProject'),
 ]
