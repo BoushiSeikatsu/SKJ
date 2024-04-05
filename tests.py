@@ -1,48 +1,155 @@
-from tasks import count_successive, find_positions, invert_dictionary, is_palindrome, \
-    lex_compare
+import pytest
+from tasks import cached, GameOfLife
+
+def test_cached_simple():
+    counts = 0
+
+    @cached
+    def counter(*a):
+        nonlocal counts
+        counts += sum(a)
+        return sum(a)
+
+    assert counter(1) == 1
+    assert counter(1) == 1
+    assert counter(2) == 2
+    assert counts == 3
+    assert counter(1) == 1
+    assert counts == 3
+    assert counter(2) == 2
+    assert counts == 3
+    assert counter(3) == 3
+    assert counts == 6
+    assert counter(3) == 3
+    assert counts == 6
+    assert counter(4) == 4
+    assert counts == 10
+    assert counter(1) == 1
+    assert counts == 11
+
+def test_cached_complex():
+    counts = 0
+
+    @cached
+    def counter(*a):
+        nonlocal counts
+        counts += sum(a)
+        return sum(a)
+
+    assert counter(1, 2) == 3
+    assert counts == 3
+    assert counter(1, 2) == 3
+    assert counter(1, 3) == 4
+    assert counts == 7
+    assert counter(0, 1) == 1
+    assert counts == 8
+    assert counter(0, 1) == 1
+    assert counts == 8
+    assert counter(1, 3) == 4
+    assert counts == 8
+    assert counter(1, 2) == 3
+    assert counts == 8
+    assert counter(1, 4) == 5
+    assert counts == 13
+    assert counter(0, 1) == 1
+    assert counts == 14
+
+    counts = 0
+    assert counter(0, 1, 0, 1, 0, 1, 0) == 3
+    assert counts == 3
+    assert counter(0, 1, 0, 1, 0, 1, 1, 0) == 4
+    assert counts == 7
+    assert counter(0, 1, 0, 1, 0, 1, 2) == 5
+    assert counts == 12
+    assert counter(0, 1, 0, 1, 0, 1, 0) == 3
+    assert counts == 12
+    assert counter(0, 1, 0, 1, 0, 1, 3) == 6
+    assert counts == 18
+    assert counter(0, 1, 0, 1, 0, 1, 1, 0) == 4
+    assert counts == 22
 
 
-def test_lex_compare():
-    assert lex_compare('a', 'b') == 'a'
-    assert lex_compare('ahoj', 'buvol') == 'ahoj'
-    assert lex_compare('ahoj', 'ahojky') == 'ahoj'
-    assert lex_compare('dum', 'automobil') == 'automobil'
-    assert lex_compare('', '') == ''
-    assert lex_compare('abc', 'abd') == 'abc'
-    assert lex_compare('dbe', 'dca') == 'dbe'
+def test_game_of_life_count_print():
+    g = GameOfLife((
+        ('.', '.', '.'),
+        ('.', '.', '.'),
+        ('.', '.', '.')
+    ))
+    assert g.alive() == 0
+    assert g.dead() == 9
+    assert str(g) == "...\n...\n...\n"
+
+    g = GameOfLife((
+        ('x', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', 'x')
+    ))
+    assert g.alive() == 4
+    assert g.dead() == 5
+    assert str(g) == "x..\n.x.\n.xx\n"
 
 
-def test_is_palindrome():
-    assert is_palindrome('')
-    assert is_palindrome('a')
-    assert is_palindrome('aa')
-    assert is_palindrome('aba')
-    assert is_palindrome('bbbb')
-    assert not is_palindrome('ab')
-    assert not is_palindrome('abc')
-    assert not is_palindrome('abca')
+def test_game_of_life_move():
+    assert GameOfLife((
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.')
+    )).move().board == (
+        ('.', '.', '.'),
+        ('.', '.', '.'),
+        ('x', 'x', 'x'),
+        ('.', '.', '.'),
+        ('.', '.', '.')
+    )
+
+    assert GameOfLife((
+        ('.', '.', '.', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', '.', '.', '.'),
+    )).move().board == (
+        ('.', '.', '.', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', '.', '.', '.'),
+    )
+
+    assert GameOfLife((
+        ('x', '.', '.'),
+        ('.', 'x', 'x'),
+        ('x', 'x', '.'),
+    )).move().board == (
+        ('.', 'x', '.'),
+        ('.', '.', 'x'),
+        ('x', 'x', 'x'),
+    )
 
 
-def test_count_successive():
-    assert count_successive("") == []
-    assert count_successive("aaabbcccc") == [("a", 3), ("b", 2), ("c", 4)]
-    assert count_successive("aabaaa") == [("a", 2), ("b", 1), ("a", 3)]
-    assert count_successive("aaaa") == [("a", 4)]
+def test_game_of_life_move_immutable():
+    board = (
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.')
+    )
 
-
-def test_find_positions():
-    assert find_positions([]) == {}
-    assert find_positions([0, 0, 0]) == {0: [0, 1, 2]}
-    assert find_positions(["hello", 1, 1, 2, "hello", 2]) == {
-        2: [3, 5],
-        "hello": [0, 4],
-        1: [1, 2]
-    }
-
-
-def test_invert_dictionary():
-    assert invert_dictionary({}) == {}
-    assert invert_dictionary({1: 2, 3: 4}) == {2: 1, 4: 3}
-    assert invert_dictionary({1: 2, 3: 2}) is None
-    assert invert_dictionary({1: 2, 3: "2"}) == {2: 1, "2": 3}
-    assert invert_dictionary({1: 2, 3: 4, "a": "b", 4: 3}) == {2: 1, 4: 3, 3: 4, "b": "a"}
+    g = GameOfLife(board)
+    n = g.move()
+    assert id(n.board) != id(board)
+    assert board == (
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.')
+    )
+    assert n.board == (
+        ('.', '.', '.'),
+        ('.', '.', '.'),
+        ('x', 'x', 'x'),
+        ('.', '.', '.'),
+        ('.', '.', '.')
+    )

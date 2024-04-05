@@ -1,14 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Mar  9 19:38:19 2024
-
-@author: Michal
-"""
-
-import dataclasses
-from typing import Callable, Generic, List, Optional, TypeVar
-
-
+import time
 def cached(f):
     """
     Create a decorator that caches up to 3 function results, based on the same parameter values.
@@ -17,7 +7,7 @@ def cached(f):
     stored result associated with these parameter values. You can assume that `f` receives only
     positional arguments (you can ignore keyword arguments).
 
-    When `f` is called with new parameter values, forget the oldest inserted result in the cache
+    When `f` is called with new parameter values, forget the oldest accessed result in the cache
     if the cache is already full.
 
     Example:
@@ -34,247 +24,197 @@ def cached(f):
     """
     queue = []
     def inner(*args, **kwargs):
-        for memory in queue:
-            if(memory[0] == args[0] and memory[1] == args[1]):#Is cached
-                print("Returned from cache")
-                return memory[2]
-            elif(len(queue) != 3):#Isnt cached and queue isnt full
-                queue.append((args[0],args[1],f(*args, **kwargs)))
-            else:#Isnt cached and queue is full
-                queue.pop(0)
-                queue.append((args[0],args[1],f(*args, **kwargs)))
+        for i in range(0,len(queue)):
+            if(queue[i][0] != args):
+                if(queue[i][2] != 0):  
+                    queue[i] = (queue[i][0],queue[i][1],queue[i][2]+1)
+        for i in range(0,len(queue)):
+            if(queue[i][0] == args):
+                queue[i] = (queue[i][0],queue[i][1],1)
+                return queue[i][1]                
+        if(len(queue) != 3):#Isnt cached and queue isnt full
+            queue.append((args,f(*args, **kwargs),0))
+        else:#Isnt cached and queue is full
+            indexToPop = 0
+            highestNumber = 0
+            for i in range(0,len(queue)):
+                if(queue[i][2] > highestNumber):
+                    indexToPop = i
+                    highestNumber = queue[i][2]
+            queue.pop(indexToPop)
+            queue.append((args,f(*args, **kwargs),0))
         if(len(queue) == 0):#First call of function
-            queue.append((args[0],args[1],f(*args, **kwargs)))
-        return queue[-1][2]
+            queue.append((args,f(*args, **kwargs),0))
+        print(queue)
+        return queue[-1][1]
+        
     return inner
     pass
-@cached
-def fn(a, b):
-    return a + b
-#print(fn(1,2))
-#print(fn(1,2))
-T = TypeVar("T")
+    pass
 
-
-@dataclasses.dataclass
-class ParseResult(Generic[T]):
+class GameOfLife:
     """
-    Represents result of a parser invocation.
-    If `value` is `None`, then the parsing was not successful.
-    `rest` contains the rest of the input string if parsing was succesful.
-    """
-    value: Optional[T]
-    rest: str
+    Implement "Game of life" (https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
 
-    @staticmethod
-    def invalid(rest: str) -> "ParseResult":
-        return ParseResult(value=None, rest=rest)
+    The game board will be represented with nested tuples, where '.'
+    marks a dead cell and 'x' marks a live cell. Cells that are out of bounds of the board are
+    assumed to be dead.
 
-    def is_valid(self) -> bool:
-        return self.value is not None
+    Try some patterns from wikipedia + the provided tests to test the functionality.
 
-
-"""
-Represents a parser: a function that takes a string as an input and returns a `ParseResult`.
-"""
-Parser = Callable[[str], ParseResult[T]]
-
-"""
-Below are functions that create new parsers.
-They should serve as LEGO blocks that can be combined together to build more complicated parsers.
-See tests for examples of usage.
-
-Note that parsers are always applied to the beginning of the string:
-```python
-parser = parser_char("a")
-parser("a")  # ParseResult(value="a", rest="")
-parser("xa") # ParseResult(value=None, rest="xa")
-```
-"""
-
-
-
-def parser_char(char: str) -> Parser[str]:
-    """
-    Return a parser that will parse a single character, `char`, from the beginning of the input
-    string.
+    The GameOfLife objects should be immutable, i.e. the move method will return a new instance
+    of GameOfLife.
 
     Example:
-        ```python
-        parser_char("x")("x") => ParseResult(value="x", rest="")
-        parser_char("x")("xa") => ParseResult(value="x", rest="a")
-        parser_char("y")("xa") => ParseResult(value=None, rest="xa")
-        ```
-    """
-    def parse(input_str: str) -> ParseResult[str]:
-        if input_str.startswith(char):
-            return ParseResult(value=char, rest=input_str[len(char):])
-        else:
-            return ParseResult.invalid(input_str)
+        game = GameOfLife((
+            ('.', '.', '.'),
+            ('.', 'x', '.'),
+            ('.', 'x', '.'),
+            ('.', 'x', '.'),
+            ('.', '.', '.')
+        ))
+        game.alive()    # 3
+        game.dead()     # 12
+        x = game.move() # 'game' doesn't change
+        # x.board:
+        (
+            ('.', '.', '.'),
+            ('.', '.', '.'),
+            ('x', 'x', 'x'),
+            ('.', '.', '.'),
+            ('.', '.', '.')
+        )
 
-    return parse    
-
-"""
-def parser(func):
-    def inner(*args):
-        result = func(*args)
-"""
-
-def parser_repeat(parser: Parser[T]) -> Parser[List[T]]:
-    """
-    Return a parser that will invoke `parser` repeatedly, while it still matches something in the
-    input.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser = parser_repeat(parser_a)
-        parser("aaax") => ParseResult(value=["a", "a", "a"], rest="x")
-        parser("xa") => ParseResult(value=[], rest="xa")
-        ```
-    """
-    def parse(inputString: str):
-        resultOfParse = parser(inputString)
-        resultOfFunc = ParseResult([], "")
-        while(resultOfParse.value is not None):
-            resultOfFunc.value.append(resultOfParse.value)
-            resultOfFunc.rest = resultOfParse.rest
-            resultOfParse = parser(resultOfParse.rest)
-        if(len(resultOfFunc.value) == 0):
-            resultOfFunc.rest = resultOfParse.rest
-        return resultOfFunc
-    return parse
-def parser_seq(parsers: List[Parser]) -> Parser:
-    """
-    Create a parser that will apply the given `parsers` successively, one after the other.
-    The result will be successful only if all parsers succeed.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser_b = parser_char("b")
-        parser = parser_seq([parser_a, parser_b, parser_a])
-        parser("abax") => ParseResult(value=["a", "b", "a"], rest="x")
-        parser("ab") => ParseResult(value=None, rest="ab")
-        ```
-    """
-    def parse(inputString: str):
-        resultOfFunc = ParseResult([],inputString)
-        for parser in parsers:
-            resultOfParse = parser(resultOfFunc.rest)
-            if(resultOfParse.value is None):
-                resultOfFunc = ParseResult(None, inputString)
-                break
-            else:
-                resultOfFunc.value.append(resultOfParse.value)
-                resultOfFunc.rest = resultOfParse.rest
-        return resultOfFunc
-    return parse
-
-def parser_choice(parsers: List[Parser]) -> Parser:
-    """
-    Return a parser that will return the result of the first parser in `parsers` that matches something
-    in the input.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser_b = parser_char("b")
-        parser = parser_choice([parser_a, parser_b])
-        parser("ax") => ParseResult(value="a", rest="x")
-        parser("bx") => ParseResult(value="b", rest="x")
-        parser("cx") => ParseResult(value=None, rest="cx")
-        ```
-    """
-    def parse(inputString: str):
-        for parser in parsers:
-            returnOfParser = parser(inputString)
-            if(returnOfParser.value is not None):
-                return returnOfParser
-        return ParseResult(None, inputString)
-    return parse
-
-R = TypeVar("R")
-
-
-def parser_map(parser: Parser[R], map_fn: Callable[[R], Optional[T]]) -> Parser[T]:
-    """
-    Return a parser that will use `parser` to parse the input data, and if it is successful, it will
-    apply `map_fn` to the parsed value.
-    If `map_fn` returns `None`, then the parsing result will be invalid.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser = parser_map(parser_a, lambda x: x.upper())
-        parser("ax") => ParseResult(value="A", rest="x")
-        parser("bx") => ParseResult(value=None, rest="bx")
-
-        parser = parser_map(parser_a, lambda x: None)
-        parser("ax") => ParseResult(value=None, rest="ax")
-        ```
-    """
-    def parse(inputString: str):
-        resultOfParser = parser(inputString)
-        if(resultOfParser.value is not None):
-            resultOfParser.value = map_fn(resultOfParser.value)
-        if(resultOfParser.value is None):
-            resultOfParser.rest = inputString
-        return resultOfParser
-    return parse 
-
-def parser_matches(filter_fn: Callable[[str], bool]) -> Parser[str]:
-    """
-    Create a parser that will parse the first character from the input, if it is accepted by the
-    given `filter_fn`.
-
-    Example:
-        ```python
-        parser = parser_matches(lambda x: x in ("ab"))
-        parser("ax") => ParseResult(value="a", rest="x")
-        parser("bx") => ParseResult(value="b", rest="x")
-        parser("cx") => ParseResult(value=None, rest="cx")
-        parser("") => ParseResult(value=None, rest="")
-        ```
-    """
-    def parse(inputString: str):
-        if(len(inputString) == 0):
-            return ParseResult(None, inputString)
-        if(filter_fn(inputString[0])):
-            value, rest = inputString[0], inputString[1::]
-            return ParseResult(value, rest)
-        else:
-            return ParseResult(None, inputString)
-    return parse
-# Use the functions above to implement the functions below.
-parser = parser_matches(lambda x: x in ("ab"))
-print(parser("ax")) #=> ParseResult(value="a", rest="x")
-print(parser("bx")) #=> ParseResult(value="b", rest="x")
-print(parser("cx")) #=> ParseResult(value=None, rest="cx")
-print(parser("")) #=> ParseResult(value=None, rest="")
-
-def parser_string(string: str) -> Parser[str]:
-    """
-    Create a parser that will parse the given `string`.
-
-    Example:
-        ```python
-        parser = parser_string("foo")
-        parser("foox") => ParseResult(value="foo", rest="x")
-        parser("fo") => ParseResult(value=None, rest="fo")
-        ```
+        str(x)
+        ...\n
+        ...\n
+        xxx\n
+        ...\n
+        ...\n
     """
 
+    def __init__(self, board):
+        """
+        Create a constructor that receives the game board and stores it in an attribute called
+        'board'.
+        """
+        self.board = board
+        self.width = len(board[0])
+        self.height = len(board)
+        pass
 
-def parser_int() -> Parser[int]:
-    """
-    Create a parser that will parse a non-negative integer (you don't have to deal with
-    `-` at the beginning).
+    def move(self):
+        """
+        Simulate one iteration of the game and return a new instance of GameOfLife containing
+        the new board state.
+        """
+        newBoard = []
+        for i in range(0,self.height):
+            newBoard.append([])
+            for j in range(0,self.width):
+                newBoard[i].append(self.board[i][j])
+            newBoard[i] = list(newBoard[i])
+        print(newBoard)
+        for i in range(0, self.height):
+            for j in range(0,self.width):
+                isAlive = False
+                countNeighbors = 0
+                notOnTop = False
+                notOnBottom = False
+                if(self.board[i][j] == 'x'):
+                    isAlive = True
+                if(i != 0):
+                    notOnTop = True
+                    if(self.board[i-1][j] == 'x'):
+                        countNeighbors += 1
+                if(i != self.height - 1):
+                    notOnBottom = True
+                    if(self.board[i+1][j] == 'x'):
+                        countNeighbors += 1
+                if(j != 0):
+                    if(notOnTop):
+                        if(self.board[i-1][j-1] == 'x'):
+                            countNeighbors += 1
+                    if(notOnBottom):
+                        if(self.board[i+1][j-1] == 'x'):
+                            countNeighbors += 1
+                    if(self.board[i][j-1] == 'x'):
+                        countNeighbors += 1
+                if(j != self.width - 1):
+                    if(notOnTop):
+                        if(self.board[i-1][j+1] == 'x'):
+                            countNeighbors += 1
+                    if(notOnBottom):
+                        if(self.board[i+1][j+1] == 'x'):
+                            countNeighbors += 1
+                    if(self.board[i][j+1] == 'x'):
+                        countNeighbors += 1
+                if(isAlive):
+                    if(countNeighbors < 2 or countNeighbors > 3):
+                        newBoard[i][j] = '.'
+                else:
+                    if(countNeighbors == 3):
+                        newBoard[i][j] = 'x'
+        for i in range(0,self.height):
+            newBoard[i] = tuple(newBoard[i])
+        return GameOfLife(tuple(newBoard))
+        pass
 
-    Example:
-        ```python
-        parser = parser_int()
-        parser("123x") => ParseResult(value=123, rest="x")
-        parser("foo") => ParseResult(value=None, rest="foo")
-        ```
+    def alive(self):
+        """
+        Return the number of cells that are alive.
+        """
+        count = 0
+        for i in range(0,self.height):
+            for j in range(0, self.width):
+                if(self.board[i][j] == 'x'):
+                    count += 1
+        return count
+        pass
+
+    def dead(self):
+        """
+        Return the number of cells that are dead.
+        """
+        count = 0
+        for i in range(0,self.height):
+            for j in range(0, self.width):
+                if(self.board[i][j] == '.'):
+                    count += 1
+        return count
+        pass
+
+    def __repr__(self):
+        """
+        Return a string that represents the state of the board in a single string (with newlines
+        for each board row).
+        """
+        result = ""
+        for i in range(0, self.height):
+            for j in range(0, self.width):
+                result = result + self.board[i][j]
+            result = result + '\n'
+        return result
+        pass
+
+
+def play_game(game, n):
     """
+    You can use this function to render the game for n iterations
+    """
+    for i in range(n):
+        print(game)
+        game = game.move()
+        time.sleep(0.25)  # sleep to see the output
+
+
+# this code will only be executed if you run `python tasks.py`
+# it will not be executed when tasks.py is imported
+if __name__ == "__main__":
+    play_game(GameOfLife((
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.'),
+    )), 10)
