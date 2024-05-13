@@ -1,8 +1,10 @@
-<html>
-    <body>
+{% extends 'UkolnicekApp/base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
     <h1><a href='/'>Main Page</a></h1>
     {% for project in projects %}
-    <h2><a href = '{% url 'project' project.projekt_id %}'>{{ project.uzivatel }}</h2>
+    <h2><a href = '{% url 'project' project.projekt_id %}'>{{ project.uzivatel }}</a></h2>
     {% endfor %}
-    </body>
-</html>
+{% endblock %}

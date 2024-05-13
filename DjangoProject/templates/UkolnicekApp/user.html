@@ -1,1 +1,14 @@
-"" 
+{% extends 'UkolnicekApp/base.html' %}
+
+{% block title %}Uživatel{% endblock %}
+
+{% block content %}
+<h3>Uživatelské údaje</h3>
+<div>Uživatelské jméno: {{ user.uzivatelske_jmeno }}</div>
+<div>Jméno: {{ user.krestni_jmeno }} {{user.prijmeni }}</div>
+<div>Email: {{ user.email }}</div>
+<div>Role: {{ user.role.nazev }}</div>
+<div>Členem od: {{user.datum_vytvoreni}}</div>
+{% endblock %}
+
+

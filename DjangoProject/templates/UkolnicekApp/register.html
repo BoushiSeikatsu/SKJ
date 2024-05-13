@@ -1,1 +1,10 @@
-"" 
+{% extends 'UkolnicekApp/base.html' %}
+
+{% block title %}Uživatel{% endblock %}
+
+{% block content %} 
+<form method="post" action="{% url 'registerUser' %}">{% csrf_token %}
+    {{registerForm.as_p}}
+    <input type='submit' value='Submit'>
+</form>
+{% endblock %}

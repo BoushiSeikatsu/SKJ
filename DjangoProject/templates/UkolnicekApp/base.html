@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Website{% endblock %}</title>
+</head>
+<body>    
+    <nav>
+        <!-- Navigation menu -->
+        <ul>
+            <li><a href="/">Domů</a></li>
+            <li><a href="/about/">O nás</a></li>
+            <!-- Add more navigation links as needed -->
+        </ul>
+    </nav>
+    {% if loggedIn %}
+    <a href='{% url 'logout' %}'>Odhlásit se</a>
+    <a href='{% url 'user' userId %}'>Profil</a>
+    {% else %}
+    <a href='{% url 'register' %}'>Registrovat</a>
+   <a href='{% url 'login' %}'>Přihlásit se</a>
+   {% endif %}
+    <main>
+        <!-- Main content -->
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    <footer>
+        <!-- Footer content -->
+        <p>&copy; 2024 Made by Michal Duba DUB0074</p>
+    </footer>
+</body>
+</html>
