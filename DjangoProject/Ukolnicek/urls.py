@@ -30,11 +30,12 @@ urlpatterns = [
     path('faq/', views.faq, name='faq'),
     path('user/<int:user_id>/', views.user, name='user'),
     path('friends/<int:user_id>/', views.friends, name='friends'),
-    path('userlist/', views.userlist, name='userlist'),
+    path('userlist/<int:project_id>/', views.userlist, name='userlist'),
     path('project/<int:project_id>/', views.project, name="project"),
     path('task/<int:task_id>/', views.task, name="task"),
     path('addTask/', views.addTask, name='addTask'),
     path('editTask/<int:task_id>/', views.editTask, name='editTask'),
     path('addProject/', views.addProject, name='addProject'),
     path('editProject/<int:project_id>/', views.editProject, name='editProject'),
+    path('project/addUserToProject/<int:project_id>/', views.addUserToProject, name='addUserToProject'),
 ]

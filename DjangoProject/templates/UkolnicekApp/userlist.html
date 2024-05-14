@@ -3,4 +3,16 @@
 {% block title %}Uživatel{% endblock %}
 
 {% block content %}
+<table>
+    <th>Uživatelské jméno</th>
+    <th>Počet úkolů</th>
+    
+{% for name, count in userTaskCount %}
+    <tr>
+        <td>{{name}}</td>
+        <td>{{count}}</td>
+    </tr>
+{% endfor %}
+</table>
+<a class="btn btn-primary" href='{% url 'project' project_id %}' role="button">Zpět</a>
 {% endblock %}

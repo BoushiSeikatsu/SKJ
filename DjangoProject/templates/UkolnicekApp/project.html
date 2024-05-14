@@ -1,10 +1,39 @@
 {% extends 'UkolnicekApp/base.html' %}
 
-{% block title %}Uživatel{% endblock %}
+{% block title %}Projekt{% endblock %}
 
 {% block content %}
-    <h1><a href='/'>Main Page</a></h1>
-    {% for task in tasks %}
-    <h2>{{task.nazev}}</h2>
-    {% endfor %}
+    <div>
+    <a class="btn btn-primary" href='{% url 'addUserToProject' project.projekt_id %}' role="button">Přidat uživatele</a>
+    </div>
+    <div>
+        <div>
+        Název projektu : {{project.projekt_id}} {{project.typ_projektu.nazev}}
+        </div>
+        <div>
+        Správce projektu: {{project.uzivatel.uzivatelske_jmeno}}
+        </div>
+        <div>
+        <a class="btn btn-primary" href='{% url 'userlist' project.projekt_id %}' role="button">Seznam uživatelů</a>
+        </div>
+    </div>
+    <div>
+        <h3>Úkoly projektu</h3>
+        <div>
+        <table>
+        <th>Název úkolu</th>
+        <th>Popis</th>
+        <th>Priorita</th>
+            {% for task in tasks %}
+            <tr>
+                <td>{{task.nazev}}</td>
+                <td>{{task.popis}}</td>
+                <td>{{task.priorita}}</td>
+                <td><a class="btn btn-primary" href='{% url 'editTask' task.ukol_id %}' role="button">Edit</a></td>
+                <td><a class="btn btn-primary" href='{% url 'task' task.ukol_id %}' role="button">Detail</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+        </div>
+    </div>
 {% endblock %}

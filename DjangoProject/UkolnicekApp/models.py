@@ -56,7 +56,7 @@ class Projekt(models.Model):
     posledni_zmena = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
-        return str(self.projekt_id)  # You can customize the display name here
+        return f"{self.projekt_id} {self.typ_projektu.nazev}"  # You can customize the display name here
 
 class Ukol(models.Model):
     ukol_id = models.AutoField(primary_key=True)

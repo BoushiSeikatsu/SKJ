@@ -5,6 +5,6 @@
 {% block content %}
     <h1><a href='/'>Main Page</a></h1>
     {% for project in projects %}
-    <h2><a href = '{% url 'project' project.projekt_id %}'>{{ project.uzivatel }}</a></h2>
+    <h3><a href = '{% url 'project' project.projekt_id %}'>{{project.projekt_id}} {{project.typ_projektu.nazev}}</a></h3>
     {% endfor %}
 {% endblock %}

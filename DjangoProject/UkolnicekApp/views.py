@@ -9,16 +9,21 @@ from datetime import datetime
 def isUserLoggedIn(request):
     if ("username" not in request.session):
         request.session["username"] = None
+        request.session["user_id"] = None
     if (request.session["username"] != None):
         return True
     return False
 def index(request):
     userId = 0
+    projectsFiltered = []
     loggedIn = isUserLoggedIn(request)
     if (loggedIn):
         userId = request.session["user_id"]
-    projects = Projekt.objects.all()
-    return render(request, 'UkolnicekApp/index.html', {'projects': projects, 'loggedIn': loggedIn, 'userId': userId})
+        projects = Projekt.objects.all()
+        for project in projects:
+            if(project.uzivatel.uzivatel_id == request.session["user_id"]):
+                projectsFiltered.append(project)
+    return render(request, 'UkolnicekApp/index.html', {'projects': projectsFiltered, 'loggedIn': loggedIn, 'userId': userId})
 
 def login(request):
     loggedIn = isUserLoggedIn(request)
@@ -86,11 +91,25 @@ def friends(request, user_id):
         userId = request.session["user_id"]
     return render(request, 'UkolnicekApp/friends.html', {'loggedIn': loggedIn, 'userId': userId})
 
-def userlist(request):
+def userlist(request, project_id):
     loggedIn = isUserLoggedIn(request)
     if (loggedIn):
         userId = request.session["user_id"]
-    return render(request, 'UkolnicekApp/userlist.html', {'loggedIn': loggedIn, 'userId': userId})
+    usersInProject = []
+    connections = UzivatelProjekt.objects.all()
+    project = Projekt.objects.get(pk=project_id)
+    for connection in connections:
+        if(connection.projekt.projekt_id == project_id):
+            usersInProject.append(connection.uzivatel)
+    userTaskCount = []
+    for user in usersInProject:
+        tasks = Ukol.objects.filter(uzivatel=user,projekt=project)
+        if(tasks.exists()):
+            
+            userTaskCount.append((user.uzivatelske_jmeno,len(tasks)))
+        else:
+            userTaskCount.append((user.uzivatelske_jmeno,0))
+    return render(request, 'UkolnicekApp/userlist.html', {'project_id': project_id , 'userTaskCount': userTaskCount, 'loggedIn': loggedIn, 'userId': userId})
 
 def project(request, project_id):
     loggedIn = isUserLoggedIn(request)
@@ -116,7 +135,8 @@ def task(request, task_id):
     loggedIn = isUserLoggedIn(request)
     if (loggedIn):
         userId = request.session["user_id"]
-    return render(request, 'UkolnicekApp/task.html', {'loggedIn': loggedIn, 'userId': userId})
+    task = get_object_or_404(Ukol, pk=task_id)
+    return render(request, 'UkolnicekApp/task.html', {'task': task, 'project_id': task.projekt.projekt_id, 'loggedIn': loggedIn, 'userId': userId})
 
 def addTask(request):
     loggedIn = isUserLoggedIn(request)
@@ -125,7 +145,37 @@ def addTask(request):
     return render(request, 'UkolnicekApp/addTask.html', {'loggedIn': loggedIn, 'userId': userId})
 
 def editTask(request, task_id):
-    loggedIn = isUserLoggedIn(request)
-    if (loggedIn):
-        userId = request.session["user_id"]
-    return render(request, 'UkolnicekApp/editTask.html', {'loggedIn': loggedIn, 'userId': userId})
+    if (request.method == 'POST'):
+        task = get_object_or_404(Ukol, pk = task_id)
+        editTaskForm = EditTaskForm(request.POST, instance=task)
+        if (editTaskForm.is_valid()):
+            editTaskForm.save()
+            return redirect('project', task.projekt.projekt_id)
+    else:
+        loggedIn = isUserLoggedIn(request)
+        task = get_object_or_404(Ukol, pk = task_id)
+        editTaskForm = EditTaskForm(instance=task)
+        if (loggedIn):
+            userId = request.session["user_id"]
+        return render(request, 'UkolnicekApp/editTask.html', {'editTaskForm': editTaskForm, 'task_id': task_id, 'loggedIn': loggedIn, 'userId': userId})
+
+def addUserToProject(request, project_id):
+    if (request.method == 'POST'):
+        addUserForm = UserProjectForm(request.POST)
+        if (addUserForm.is_valid()):
+            addUserFormBody = addUserForm.cleaned_data
+            userExists = Uzivatel.objects.filter(uzivatelske_jmeno=addUserFormBody["uzivatelske_jmeno"])
+            if(userExists.exists()):
+                user = Uzivatel.objects.get(uzivatelske_jmeno=addUserFormBody["uzivatelske_jmeno"])
+                project = Projekt.objects.get(projekt_id = project_id)
+                connection = UzivatelProjekt(uzivatel=user, projekt=project)
+                connection.save()
+                return redirect('project', project_id)
+    else:
+        loggedIn = isUserLoggedIn(request)
+        addUserForm = UserProjectForm()
+        if (loggedIn):
+            userId = request.session["user_id"]
+        return render(request, 'UkolnicekApp/addUserToProject.html', {'addUserForm' : addUserForm, 'project_id': project_id, 'loggedIn': loggedIn, 'userId': userId})
+
+

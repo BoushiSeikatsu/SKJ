@@ -3,4 +3,20 @@
 {% block title %}Uživatel{% endblock %}
 
 {% block content %}
+<div>
+Název: {{task.nazev}}
+</div>
+<div>
+Popis: {{task.popis}}
+</div>
+<div>
+Priorita: {{task.priorita}}
+</div>
+<div>
+Stav: {{task.stav_ukolu.nazev}}
+</div>
+<div>
+Uživatel pracující na úkolu: {{task.uzivatel.uzivatelske_jmeno}}
+</div>
+<a class="btn btn-primary" href='{% url 'project' project_id %}' role="button">Zpět</a>
 {% endblock %}

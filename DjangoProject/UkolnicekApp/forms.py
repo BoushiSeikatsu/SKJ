@@ -6,7 +6,7 @@ Created on Mon May 13 08:57:26 2024
 """
 
 from django import forms
-from .models import Uzivatel
+from .models import Uzivatel, Ukol
 
 class RegisterForm(forms.ModelForm):
     class Meta:
@@ -17,3 +17,13 @@ class LoginForm(forms.ModelForm):
     class Meta:
         model = Uzivatel 
         fields = ["uzivatelske_jmeno", "heslo"]
+        
+class UserProjectForm(forms.ModelForm):
+    class Meta:
+        model = Uzivatel
+        fields = ["uzivatelske_jmeno"]
+        
+class EditTaskForm(forms.ModelForm):
+    class Meta:
+        model = Ukol
+        fields = ["nazev", "popis", "priorita"]
