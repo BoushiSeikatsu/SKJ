@@ -6,7 +6,7 @@ Created on Mon May 13 08:57:26 2024
 """
 
 from django import forms
-from .models import Uzivatel, Ukol
+from .models import Uzivatel, Ukol, Projekt
 
 class RegisterForm(forms.ModelForm):
     class Meta:
@@ -27,3 +27,8 @@ class EditTaskForm(forms.ModelForm):
     class Meta:
         model = Ukol
         fields = ["nazev", "popis", "priorita"]
+
+class AddProjectForm(forms.ModelForm):
+    class Meta:
+        model = Projekt
+        fields = ["typ_projektu"]

@@ -123,6 +123,8 @@ def addProject(request):
     loggedIn = isUserLoggedIn(request)
     if (loggedIn):
         userId = request.session["user_id"]
+    if(request.method == "POST"):
+        pass
     return render(request, 'UkolnicekApp/addProject.html', {'loggedIn': loggedIn, 'userId': userId})
 
 def editProject(request, project_id):
