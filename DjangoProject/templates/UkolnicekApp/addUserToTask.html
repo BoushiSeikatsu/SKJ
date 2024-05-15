@@ -1,0 +1,10 @@
+{% extends 'UkolnicekApp/base.html' %}
+
+{% block title %}Přidat uživatele do projektu{% endblock %}
+
+{% block content %}
+    <form method="post" action="{% url 'addUserToTask' task_id %}">{% csrf_token %}
+        {{form.as_p}}
+        <input type='submit' value='Submit'>
+    </form>
+{% endblock %}

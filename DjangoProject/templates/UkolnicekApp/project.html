@@ -4,6 +4,7 @@
 
 {% block content %}
     <div>
+     <a class="btn btn-primary" href='{% url 'userlist' project.projekt_id %}' role="button">Zobrazit seznam uživatelů</a>
     <a class="btn btn-primary" href='{% url 'addUserToProject' project.projekt_id %}' role="button">Přidat uživatele</a>
     </div>
     <div>
@@ -14,7 +15,7 @@
         Správce projektu: {{project.uzivatel.uzivatelske_jmeno}}
         </div>
         <div>
-        <a class="btn btn-primary" href='{% url 'userlist' project.projekt_id %}' role="button">Seznam uživatelů</a>
+       
         </div>
     </div>
     <div>
@@ -31,9 +32,11 @@
                 <td>{{task.priorita}}</td>
                 <td><a class="btn btn-primary" href='{% url 'editTask' task.ukol_id %}' role="button">Edit</a></td>
                 <td><a class="btn btn-primary" href='{% url 'task' task.ukol_id %}' role="button">Detail</a></td>
+                <td><a class="btn btn-primary" href='{% url 'addUserToTask' task.ukol_id %}' role="button">Přiřadit úkol</a></td>
             </tr>
             {% endfor %}
         </table>
         </div>
+        <a class="btn btn-primary" href='{% url 'addTask' project.projekt_id %}' role="button">Přidat Ukol</a>
     </div>
 {% endblock %}

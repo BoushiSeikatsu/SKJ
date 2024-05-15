@@ -68,12 +68,14 @@ def registerUser(request):
 
 def about(request):
     loggedIn = isUserLoggedIn(request)
+    userId = request.session["user_id"]
     if (loggedIn):
         userId = request.session["user_id"]
     return render(request, 'UkolnicekApp/about.html', {'loggedIn': loggedIn, 'userId': userId})
 
 def faq(request):
     loggedIn = isUserLoggedIn(request)
+    userId = request.session["user_id"]
     if (loggedIn):
         userId = request.session["user_id"]
     return render(request, 'UkolnicekApp/faq.html', {'loggedIn': loggedIn, 'userId': userId})
@@ -124,14 +126,31 @@ def addProject(request):
     if (loggedIn):
         userId = request.session["user_id"]
     if(request.method == "POST"):
-        pass
-    return render(request, 'UkolnicekApp/addProject.html', {'loggedIn': loggedIn, 'userId': userId})
+        projectForm = AddProjectForm(request.POST)
+        if(projectForm.is_valid()): 
+            projectFormBody = projectForm.cleaned_data
+            user = get_object_or_404(Uzivatel, pk=request.session["user_id"])
+            projekt = Projekt(datum_vytvoreni=datetime.now(),posledni_zmena=datetime.now(),typ_projektu=projectFormBody["typ_projektu"],uzivatel=user)
+            projekt.save()
+            return redirect("index")
+    else:
+        projectForm = AddProjectForm()
+        return render(request, 'UkolnicekApp/addProject.html', {'projectForm': projectForm, 'loggedIn': loggedIn, 'userId': userId})
 
 def editProject(request, project_id):
     loggedIn = isUserLoggedIn(request)
     if (loggedIn):
         userId = request.session["user_id"]
-    return render(request, 'UkolnicekApp/editProject.html', {'loggedIn': loggedIn, 'userId': userId})
+    if(request.method == "POST"):
+        projekt = get_object_or_404(Projekt, pk=project_id)
+        projectForm = AddProjectForm(request.POST,instance=projekt)
+        if(projectForm.is_valid()): 
+            projectForm.save()
+            return redirect("index")
+    else:
+        projekt = get_object_or_404(Projekt, pk=project_id)
+        projectForm = AddProjectForm(instance=projekt)
+        return render(request, 'UkolnicekApp/editProject.html', {'project_id': project_id, 'projectForm': projectForm, 'loggedIn': loggedIn, 'userId': userId})
 
 def task(request, task_id):
     loggedIn = isUserLoggedIn(request)
@@ -140,11 +159,22 @@ def task(request, task_id):
     task = get_object_or_404(Ukol, pk=task_id)
     return render(request, 'UkolnicekApp/task.html', {'task': task, 'project_id': task.projekt.projekt_id, 'loggedIn': loggedIn, 'userId': userId})
 
-def addTask(request):
-    loggedIn = isUserLoggedIn(request)
-    if (loggedIn):
-        userId = request.session["user_id"]
-    return render(request, 'UkolnicekApp/addTask.html', {'loggedIn': loggedIn, 'userId': userId})
+def addTask(request, project_id):
+    if (request.method == 'POST'):
+        editTaskForm = EditTaskForm(request.POST)
+        if (editTaskForm.is_valid()):
+            editTaskFormBody = editTaskForm.cleaned_data
+            state = get_object_or_404(StavUkolu,pk = 2)
+            projekt = get_object_or_404(Projekt, pk = project_id)
+            task = Ukol(datum_vytvoreni=datetime.now(), posledni_zmena=datetime.now(), nazev=editTaskFormBody["nazev"],popis=editTaskFormBody["popis"], priorita=editTaskFormBody["priorita"], stav_ukolu=state,nejzazsi_termin=datetime.now(),predpo_cas=10,projekt=projekt)
+            task.save()
+            return redirect('project', project_id)
+    else:
+        loggedIn = isUserLoggedIn(request)
+        editTaskForm = EditTaskForm()
+        if (loggedIn):
+            userId = request.session["user_id"]
+    return render(request, 'UkolnicekApp/addTask.html', {'project_id': project_id, 'editTaskForm': editTaskForm ,'loggedIn': loggedIn, 'userId': userId})
 
 def editTask(request, task_id):
     if (request.method == 'POST'):
@@ -180,4 +210,18 @@ def addUserToProject(request, project_id):
             userId = request.session["user_id"]
         return render(request, 'UkolnicekApp/addUserToProject.html', {'addUserForm' : addUserForm, 'project_id': project_id, 'loggedIn': loggedIn, 'userId': userId})
 
+def addUserToTask(request, task_id):
+    loggedIn = isUserLoggedIn(request)
+    if (loggedIn):
+        userId = request.session["user_id"]
+    if(request.method == "POST"):
+        task = get_object_or_404(Ukol, pk=task_id)
+        form = UserTaskForm(request.POST,instance=task)
+        if(form.is_valid()): 
+            form.save()
+            return redirect("project", task.projekt.projekt_id)
+    else:
+        task = get_object_or_404(Ukol, pk=task_id)
+        form = UserTaskForm(instance=task)
+        return render(request, 'UkolnicekApp/addUserToTask.html', {'task_id': task_id, 'form': form, 'loggedIn': loggedIn, 'userId': userId})
 

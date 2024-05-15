@@ -32,3 +32,9 @@ class AddProjectForm(forms.ModelForm):
     class Meta:
         model = Projekt
         fields = ["typ_projektu"]
+
+class UserTaskForm(forms.ModelForm):
+    class Meta:
+        model = Ukol 
+        fields = ["uzivatel"]
+        

@@ -4,7 +4,7 @@
 
 {% block content %}
 <form method="post" action="{% url 'addProject' %}">{% csrf_token %}
-    {{addUserForm.as_p}}
+    {{projectForm.as_p}}
     <input type='submit' value='Submit'>
 </form>
 {% endblock %}
